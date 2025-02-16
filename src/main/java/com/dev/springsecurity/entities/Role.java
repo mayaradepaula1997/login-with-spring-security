@@ -1,16 +1,14 @@
 package com.dev.springsecurity.entities;
-
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "tb_roles")
 public class Role {
 
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //O valor será gerado pelo banco de dados por meio de uma coluna auto-incremento.
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "role_id")
     private Long roleId;
-
     private String name;
 
     public Long getRoleId() {
@@ -27,5 +25,21 @@ public class Role {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public enum Values {
+
+        ADMIN(1L),
+        BASIC(2L);
+
+        long roleId;
+
+        Values(long roleId) {
+            this.roleId = roleId;
+        }
+
+        public long getRoleId() {
+            return roleId;
+        }
     }
 }

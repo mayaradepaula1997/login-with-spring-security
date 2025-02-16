@@ -2,6 +2,7 @@ package com.dev.springsecurity.entities;
 
 import jakarta.persistence.*;
 
+import javax.management.relation.Role;
 import java.util.Set;
 import java.util.UUID;
 
@@ -11,13 +12,16 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "user_id")
     private UUID userId;
 
     @Column(unique = true) //campo unico
-    private String name;
+    private String username;
+
     private String passaword;
 
-    @ManyToMany //Um usuário pode ter varios perfis e um perfil pode esta vinculado a varios usuários
+    //Um usuário pode ter varios perfis e um perfil pode esta vinculado a varios usuários
+    @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
     @JoinTable(
             name = "tb_users_roles", //tabela intermediária que será usada para armazenar a associação entre as duas entidades (chave estrangeira)
             joinColumns = @JoinColumn(name = "user_id"), //nome de uma das colunas
@@ -36,11 +40,11 @@ public class User {
     }
 
     public String getName() {
-        return name;
+        return username;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.username= name;
     }
 
     public String getPassaword() {
