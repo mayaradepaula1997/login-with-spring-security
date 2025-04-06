@@ -4,6 +4,7 @@ import com.dev.springsecurity.entities.Role;
 import com.dev.springsecurity.entities.User;
 import com.dev.springsecurity.repository.RoleRepository;
 import com.dev.springsecurity.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -28,6 +29,7 @@ public class AdminUserConfig implements CommandLineRunner { //Assim que o projet
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
 
         Role roleAdmin =  roleRepository.findByName(Role.Values.ADMIN.name()); //Busca no BD uma role com o nome ADMIN. Essa role é associada ao usuário admin
