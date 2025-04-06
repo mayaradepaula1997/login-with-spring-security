@@ -73,5 +73,6 @@ public class User {
     }
 
 
-
+    public void setPasaword(String encode) {
+    }
 }
