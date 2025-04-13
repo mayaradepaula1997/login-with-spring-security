@@ -1,10 +1,15 @@
 package com.dev.springsecurity.controller;
 
 import com.dev.springsecurity.controller.dto.CreateTweetDto;
+import com.dev.springsecurity.controller.dto.FeedDto;
+import com.dev.springsecurity.controller.dto.FeedItemDto;
+import com.dev.springsecurity.entities.Role;
 import com.dev.springsecurity.entities.Tweet;
 import com.dev.springsecurity.entities.User;
 import com.dev.springsecurity.repository.TweetRepository;
 import com.dev.springsecurity.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -48,14 +53,20 @@ public class TweetController {
     public ResponseEntity<Void> deleteTweet(@PathVariable("id") Long tweetId,
                                             JwtAuthenticationToken token) {  //representa o token JWT do usuário autenticado
 
+        var user = userRepository.findById(UUID.fromString(token.getName()));
+
         var tweet = tweetRepository.findById(tweetId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        //Verifica se o dono do tweet (tweet.getUser().getUserId()) é igual ao usuário autenticado (UUID.fromString(token.getName()))
-        //token.getName() retorna o ID do usuário que fez login, extraído do JWT.
-        if (tweet.getUser().getUserId().equals(UUID.fromString(token.getName()))){
-            tweetRepository.deleteById(tweetId);
 
+        var isAdmin = user.get().getRoles()
+                .stream()
+                .anyMatch(role -> role.getName().equalsIgnoreCase(Role.Values.ADMIN.name()));
+
+
+        if (isAdmin || tweet.getUser().getUserId().equals(UUID.fromString(token.getName()))){
+
+            tweetRepository.deleteById(tweetId);
 
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
@@ -65,4 +76,30 @@ public class TweetController {
         return ResponseEntity.ok().build();
     }
 
+    //Listar tweets por paginação
+    @GetMapping("/feed")
+    public ResponseEntity<FeedDto> feed(@RequestParam(value = "page", defaultValue = "0")int page,
+                                        @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+
+
+        var tweets = tweetRepository.findAll(
+
+                        PageRequest.of(page, pageSize, Sort.Direction.DESC, "creationTimestamp"))
+                .map(tweet ->
+                        new FeedItemDto(
+                                tweet.getTweetId(),
+                                tweet.getContent(),
+                                tweet.getUser().getName())
+                );
+
+        return ResponseEntity.ok(new FeedDto(
+                tweets.getContent(), page, pageSize, tweets.getTotalPages(), tweets.getTotalElements()));
+
+    }
+
+
 }
+
+
+
+
