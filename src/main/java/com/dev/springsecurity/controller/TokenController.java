@@ -7,6 +7,7 @@ se tudo isso for verdade, vamos montar seu token JWT,
 
 import com.dev.springsecurity.controller.dto.LoginRequest;
 import com.dev.springsecurity.controller.dto.LoginResponse;
+import com.dev.springsecurity.entities.Role;
 import com.dev.springsecurity.entities.User;
 import com.dev.springsecurity.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 public class TokenController {
@@ -50,14 +52,21 @@ public class TokenController {
         Instant now = Instant.now();
         var expiresIn = 300L;
 
+        //Trazer informações do usuario através do token
+        var scopes = user.get().getRoles()
+                .stream()
+                .map(Role::getName)
+                .collect(Collectors.joining(" "));
+
         //Gerar o token JWT
-        //Atributos da classe JSON chamdo de "CLAIMS"
+        //Atributos da classe JSON chamado de "CLAIMS"
 
         var claims = JwtClaimsSet.builder() //var(Long)
                 .issuer("mybackend")
                 .subject(user.get().getUserId().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(expiresIn))
+                .claim("scope",scopes)
                 .build();
 
         //Criptogrfia do token / var(String)
